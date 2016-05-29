@@ -18,21 +18,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function # for Python 2 backwards compatibility
-from blessings import Terminal
 import collections
 import re
-
-# Blessings for terminal colors
-term  = Terminal()
-underline = term.underline
-black = term.black
-red = term.red
-green = term.green
-yellow = term.yellow
-blue = term.blue
-purple = term.purple
-turquoise = term.turquoise
-normal = term.normal
 
 class wordsworth:
     args = 0
@@ -43,7 +30,7 @@ class wordsworth:
     previous_pair = ''
     previous_triple = ''
     previous_quad = ''
-    max_n_word = 4  
+    max_n_word = 4
     n_words = []
     prev_n_words = []
     counters = []
@@ -77,7 +64,7 @@ class wordsworth:
     def __init__(self, commandline_args):
         args = commandline_args
         self.ignore_list = str(args.ignore_list).split(",")
-        
+
 
     def print_n_word_frequencies(self, n_word_counter):
         total_entries = sum(n_word_counter.values())
@@ -86,42 +73,39 @@ class wordsworth:
             m = n_word_counter.most_common(min(unique_entries, args.top_n))
             n = len(m[0][0].split(' '))
 
-            print('\n===' + blue + ' Commonest ' + str(n) + '-words' + normal + '===')
+            print('\n===' + ' Commonest ' + str(n) + '-words' + '===')
 
             for i in range(0, min(unique_entries, args.top_n)):
                 n_word = m[i][0]
                 count = m[i][1]
                 perc = 100.0 * (count / float(total_entries))
 
-                print((str(i + 1) + ' = ' + purple + n_word +
-                    normal + ' (' + purple + str(count).split('.')[0] + normal +
-                    ' = ' + purple + str(perc)[:5] + '%' + normal + ')'))
+                print((str(i + 1) + ' = ' + n_word + ' (' + str(count).split('.')[0] +
+                    ' = ' + str(perc)[:5] + '%' + ')'))
 
 
     def print_results(self):
-        print('\n===' + blue + ' RESULTS ' + normal + '===')
+        print('\n==='  + ' RESULTS ' + '===')
 
-        print('File = ' + purple + str(args.inputfile) + normal)
-        print('Longest word = ' + purple + str(self.word_stats['longest_word']) + normal +
-            ' (' + purple + str(self.word_stats['max_length']) + normal + ')')
+        print('File = ' + str(args.inputfile))
+        print('Longest word = ' + str(self.word_stats['longest_word']) +
+            ' (' + str(self.word_stats['max_length']) + ')')
 
-        print('Shortest word = ' + purple + str(self.word_stats['shortest_word']) + normal +
-            ' (' + purple + str(self.word_stats['min_length']) + normal + ')')
+        print('Shortest word = ' + str(self.word_stats['shortest_word']) +
+            ' (' + str(self.word_stats['min_length']) + ')')
 
-        print('Mean word length /chars = ' + purple + str(self.word_stats['mean_length']) +
-                normal)
+        print('Mean word length /chars = ' + str(self.word_stats['mean_length']))
 
-        print('Total words parsed = ' + purple +
-                str(self.word_stats['total_words']).split('.')[0] + normal)
+        print('Total words parsed = ' +
+                str(self.word_stats['total_words']).split('.')[0])
 
-        print('Total chars parsed = ' + purple + str(self.word_stats['total_chars']) +
-                normal)
+        print('Total chars parsed = ' + str(self.word_stats['total_chars']))
 
         for i in range(self.max_n_word):
             self.print_n_word_frequencies(self.counters[i])
 
         total_dev = 0.0
-        print('\n===' + blue + ' FREQUENCY ANALYSIS ' + normal + '===')
+        print('\n===' + ' FREQUENCY ANALYSIS ' + '===')
         for char in sorted(iter(self.word_stats['char_percentages'])):
             bar = ''
             perc = self.word_stats['char_percentages'][char]
@@ -132,7 +116,7 @@ class wordsworth:
 
             for i in range(0, int(perc)):
                 bar += '#'
-            print(char + ' |' + red + bar + normal + ' ' + str(perc)[:4] +
+            print(char + ' |' + bar + ' ' + str(perc)[:4] +
                     '% (' + str(dev)[:4] + '% deviation from random)')
 
         print('\nTotal percentage deviation from random = ' +
@@ -162,10 +146,10 @@ class wordsworth:
 
     def compute_stats(self):
         for word in self.words:
-        
+
             if word in self.ignore_list:
                 continue
-        
+
             word = word.strip(r"&^%$#@!")
 
             # Allow hyphenated words, but not hyphens as words on their own.
@@ -230,11 +214,11 @@ if __name__ == '__main__':
     parser.add_argument('--top', '-t', dest='top_n', required=False, default=20, type=int, help='List the top t most frequent n-words. Default is 20.')
     parser.add_argument('--allow-digits', '-d', dest='allow_digits', default=False, required=False, help='Allow digits to be parsed (true/false). Default is false.')
     parser.add_argument('--ignore', '-i', dest='ignore_list', required=False, help='Comma-delimted list of things to ignore')
- 
+
     args = parser.parse_args()
 
     w = wordsworth(args)
     w.init_word_counters()
     w.read_file()
-    w.compute_stats()  
+    w.compute_stats()
     w.print_results()
