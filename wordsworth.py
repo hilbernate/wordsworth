@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Modified by: Gabriel Montalvo
 # Name: wordsworth
 # Description: Frequency analysis tool
 # Licence: GPLv3
@@ -66,7 +67,6 @@ class wordsworth:
                   }
 
 
-    # TODO add this property to the arguments list
     def __init__(self, options):
 
         args = Namespace(
@@ -76,7 +76,7 @@ class wordsworth:
             max_n_word = options['max_n_word'],
             top_n = options['top_n'])
 
-        self.ignore_list = str(args.ignore_list).split(",")
+        self.ignore_list = args.ignore_list
         self._allow_digits = args.allow_digits
         self._inputfile = args.inputfile
         self._max_n_word = args.max_n_word
@@ -136,9 +136,6 @@ class wordsworth:
 
         results['average_deviation'] =  float(str(average_dev)[:4])
         results['lexical_density'] = float(str(self.word_stats['lexical_density'])[:5])
-
-        # NOTE this prints out the JSON object for test purposes
-        # print(json.dumps(results, sort_keys=True, indent=4, separators=(',', ': ')))
 
         return json.dumps(results, sort_keys=True, indent=4, separators=(',', ': '))
 
