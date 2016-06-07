@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# Modified by: Gabriel Montalvo
 # Name: wordsworth
 # Description: Frequency analysis tool
 # Licence: GPLv3
@@ -19,13 +18,21 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function # for Python 2 backwards compatibility
+from blessings import Terminal
 import collections
 import re
-import json
 
-class Namespace:
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+# Blessings for terminal colors
+term  = Terminal()
+underline = term.underline
+black = term.black
+red = term.red
+green = term.green
+yellow = term.yellow
+blue = term.blue
+purple = term.purple
+turquoise = term.turquoise
+normal = term.normal
 
 class wordsworth:
     args = 0
@@ -67,98 +74,98 @@ class wordsworth:
                   }
 
 
-    def __init__(self, options):
+    def __init__(self, commandline_args):
+        args = commandline_args
+        self.ignore_list = str(args.ignore_list).split(",")
+        
 
-        args = Namespace(
-            allow_digits = options['allow_digits'],
-            ignore_list = options['ignore_list'],
-            inputfile = options['inputfile'],
-            max_n_word = options['max_n_word'],
-            top_n = options['top_n'])
+    def print_n_word_frequencies(self, n_word_counter):
+        total_entries = sum(n_word_counter.values())
+        unique_entries = len(n_word_counter)
+        if total_entries > 0:
+            m = n_word_counter.most_common(min(unique_entries, args.top_n))
+            n = len(m[0][0].split(' '))
 
-        self.ignore_list = args.ignore_list
-        self._allow_digits = args.allow_digits
-        self._inputfile = args.inputfile
-        self._max_n_word = args.max_n_word
-        self._top_n = args.top_n
+            print('\n===' + blue + ' Commonest ' + str(n) + '-words' + normal + '===')
 
-        self.init_word_counters()
-        self.read_file()
-        self.compute_stats()
+            for i in range(0, min(unique_entries, args.top_n)):
+                n_word = m[i][0]
+                count = m[i][1]
+                perc = 100.0 * (count / float(total_entries))
+
+                print((str(i + 1) + ' = ' + purple + n_word +
+                    normal + ' (' + purple + str(count).split('.')[0] + normal +
+                    ' = ' + purple + str(perc)[:5] + '%' + normal + ')'))
 
 
-    def calc(self):
+    def print_results(self):
+        print('\n===' + blue + ' RESULTS ' + normal + '===')
 
-        results = {
-            'file': str(self._inputfile),
-            'longest_word': str(self.word_stats['longest_word']) + ' (' + str(self.word_stats['max_length']) + ')',
-            'shortest_word': str(self.word_stats['shortest_word']) + ' (' + str(self.word_stats['min_length']) + ')',
-            'mean_word_length_per_char': self.word_stats['mean_length'],
-            'total_words_parsed': int(str(self.word_stats['total_words']).split('.')[0]),
-            'total_chars_parsed': self.word_stats['total_chars']
-        }
+        print('File = ' + purple + str(args.inputfile) + normal)
+        print('Longest word = ' + purple + str(self.word_stats['longest_word']) + normal +
+            ' (' + purple + str(self.word_stats['max_length']) + normal + ')')
+
+        print('Shortest word = ' + purple + str(self.word_stats['shortest_word']) + normal +
+            ' (' + purple + str(self.word_stats['min_length']) + normal + ')')
+
+        print('Mean word length /chars = ' + purple + str(self.word_stats['mean_length']) +
+                normal)
+
+        print('Total words parsed = ' + purple +
+                str(self.word_stats['total_words']).split('.')[0] + normal)
+
+        print('Total chars parsed = ' + purple + str(self.word_stats['total_chars']) +
+                normal)
 
         for i in range(self.max_n_word):
-            total_entries = sum(self.counters[i].values())
-            unique_entries = len(self.counters[i])
-
-            if total_entries > 0:
-                m = self.counters[i].most_common(min(unique_entries, self._top_n))
-                n = len(m[0][0].split(' '))
-
-                tmp = {}
-
-                for i in range(0, min(unique_entries, self._top_n)):
-                    n_word = m[i][0]
-                    count = m[i][1]
-                    perc = 100.0 * (count / float(total_entries))
-
-                    tmp[str(i + 1)] = n_word + ' (' + str(count).split('.')[0] + ' = ' + str(perc)[:5] + '%' + ')'
-
-                results['commonest_' + str(n) + '_words'] = tmp
+            self.print_n_word_frequencies(self.counters[i])
 
         total_dev = 0.0
-        freq_chars = {}
-
+        print('\n===' + blue + ' FREQUENCY ANALYSIS ' + normal + '===')
         for char in sorted(iter(self.word_stats['char_percentages'])):
+            bar = ''
             perc = self.word_stats['char_percentages'][char]
 
             # Percentage deviation from random distribution of characters.
             dev = 100.0 * (abs((100.0 / 26.0) - perc) / (100.0 / 26.0))
             total_dev += dev
 
-            freq_chars[char] = str(perc)[:4] + '% (' + str(dev)[:4] + '% deviation from random)'
+            for i in range(0, int(perc)):
+                bar += '#'
+            print(char + ' |' + red + bar + normal + ' ' + str(perc)[:4] +
+                    '% (' + str(dev)[:4] + '% deviation from random)')
 
-        results['frequency_analysis'] = freq_chars
-        results['total_deviation'] = float(str(total_dev).split('.')[0])
+        print('\nTotal percentage deviation from random = ' +
+                str(total_dev).split('.')[0] + '%')
 
         average_dev = total_dev / 26.0
 
-        results['average_deviation'] =  float(str(average_dev)[:4])
-        results['lexical_density'] = float(str(self.word_stats['lexical_density'])[:5])
+        print('Average percentage deviation from random = ' +
+                str(average_dev)[:4] + '%')
 
-        return json.dumps(results, sort_keys=True, indent=4, separators=(',', ': '))
+        print('Lexical density = ' + str(self.word_stats['lexical_density'])[:5] + '%')
 
     def init_word_counters(self):
-        self.max_n_word = self._max_n_word
+        self.max_n_word = args.max_n_word
         self.n_words = ['' for i in range(self.max_n_word)]
         self.prev_n_words = ['' for i in range(self.max_n_word)]
         self.counters = [collections.Counter() for i in range(self.max_n_word)]
 
 
     def read_file(self):
-        if self._allow_digits:
-            self.words = re.findall(r"['\-\w]+", open(self._inputfile).read().lower())
+        print("[+] Analysing '" + args.inputfile + "'")
+        if args.allow_digits:
+            self.words = re.findall(r"['\-\w]+", open(args.inputfile).read().lower())
         else:
-            self.words = re.findall(r"['\-A-Za-z]+", open(self._inputfile).read().lower())
+            self.words = re.findall(r"['\-A-Za-z]+", open(args.inputfile).read().lower())
 
 
     def compute_stats(self):
         for word in self.words:
-
+        
             if word in self.ignore_list:
                 continue
-
+        
             word = word.strip(r"&^%$#@!")
 
             # Allow hyphenated words, but not hyphens as words on their own.
@@ -213,3 +220,21 @@ class wordsworth:
         total_words = sum(self.counters[0].values())
         self.word_stats['lexical_density'] = 100.0 * total_unique_words / float(total_words)
 
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Perform letter, word and n-tuple frequency analysis on text files.')
+    parser.add_argument('--filename', '-f', dest='inputfile', required=True, help='Text file to parse.')
+    parser.add_argument('--ntuple', '-n', dest='max_n_word', required=False, default=4, type=int, help='The maximum length n-tuple of words. Default is 4.')
+    parser.add_argument('--top', '-t', dest='top_n', required=False, default=20, type=int, help='List the top t most frequent n-words. Default is 20.')
+    parser.add_argument('--allow-digits', '-d', dest='allow_digits', default=False, required=False, help='Allow digits to be parsed (true/false). Default is false.')
+    parser.add_argument('--ignore', '-i', dest='ignore_list', required=False, help='Comma-delimted list of things to ignore')
+
+    args = parser.parse_args()
+
+    w = wordsworth(args)
+    w.init_word_counters()
+    w.read_file()
+    w.compute_stats()
+    w.print_results()

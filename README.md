@@ -47,7 +47,7 @@ Step 1. Install NLTK
 ```
 $ sudo pip install nltk
 ```
-Step 2. Launch the python interpretter
+Step 2. Launch the python interpreter
 ```
 $ python
 ```
