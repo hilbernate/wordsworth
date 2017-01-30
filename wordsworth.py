@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# Author: 0jag
 # Modified by: Gabriel Montalvo
 # Name: wordsworth
 # Description: Frequency analysis tool
