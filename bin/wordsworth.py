@@ -155,9 +155,9 @@ class wordsworth:
     def read_file(self):
         print("[+] Analysing '" + args.inputfile + "'")
         if args.allow_digits:
-            self.words = re.findall(r"['\-\w]+", open(args.inputfile).read().lower())
+            self.words = re.findall(r"['\-\w]+", open(args.inputfile,encoding="ISO-8859-1").read().lower())
         else:
-            self.words = re.findall(r"['\-A-Za-z]+", open(args.inputfile).read().lower())
+            self.words = re.findall(r"['\-A-Za-z]+", open(args.inputfile,encoding="ISO-8859-1").read().lower())
 
 
     def compute_stats(self):
